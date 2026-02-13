@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import math
-from typing import Iterable
 
 import pandas as pd
 
@@ -136,7 +134,7 @@ def run_matching(quotes: pd.DataFrame, orders: pd.DataFrame, qmap: dict[str, str
         fallback_note = "Rev not available; Option A fell back to Option B"
 
     if "open" in omap:
-        open_index = _build_index(order_candidates[order_candidates["Open"] == True], with_rev=False)
+        open_index = _build_index(order_candidates[order_candidates["Open"]], with_rev=False)
         q["MatchedOpen"] = q.apply(lambda r: _quote_is_matched(r, open_index, cfg.tolerance, with_rev=False), axis=1)
         open_note = ""
     else:
@@ -164,6 +162,18 @@ def run_matching(quotes: pd.DataFrame, orders: pd.DataFrame, qmap: dict[str, str
 
     debug = None
     if cfg.debug:
-        debug = q[["Quote", "Customer", "Quote Amount", "Date Quoted", "Entry Person Name", "Rev", "MatchedA", "MatchedB", "MatchedOpen"]].copy()
+        debug = q[
+            [
+                "Quote",
+                "Customer",
+                "Quote Amount",
+                "Date Quoted",
+                "Entry Person Name",
+                "Rev",
+                "MatchedA",
+                "MatchedB",
+                "MatchedOpen",
+            ]
+        ].copy()
 
     return MatchResult(option_a=option_a, option_b=option_b, option_c=option_c, meta=meta, debug=debug)

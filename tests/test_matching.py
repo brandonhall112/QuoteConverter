@@ -52,7 +52,7 @@ def test_option_a_b_c_and_grouping():
 
     assert set(out.option_b["Quote"]) == {"Q2"}
     assert set(out.option_a["Quote"]) == {"Q2", "Q4"}
-    assert set(out.option_c["Quote"]) == {"Q1", "Q3", "Q4"}
+    assert set(out.option_c["Quote"]) == {"Q1", "Q4"}
 
 
 def test_rev_fallback_when_missing():

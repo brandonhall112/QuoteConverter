@@ -39,11 +39,10 @@ python -m followup_quotes.cli ^
   --out "FollowUp_Output.xlsx"
 ```
 
+If you expose a console script named `followup_quotes`, this equivalent command works:
+
 ```bash
-python -m followup_quotes.cli ^
-  --quotes "Quote Summary.xlsx" ^
-  --orders "Order Log.xlsx" ^
-  --out "FollowUp_Output.xlsx"
+followup_quotes --quotes "Quote Summary.xlsx" --orders "Order Log.xlsx" --out "FollowUp_Output.xlsx"
 ```
 
 It is important to note that you can load an order log and quote summary on demand and generate an `.xlsx` workbook for team distribution with quotes to follow up.
