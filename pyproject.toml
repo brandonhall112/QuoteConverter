@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "followup-quotes"
+version = "0.1.0"
+description = "Follow-up quote workbook generator"
+requires-python = ">=3.11"
+dependencies = [
+  "pandas>=2.1",
+  "openpyxl>=3.1",
+  "rapidfuzz>=3.0",
+]
+
+[project.scripts]
+followup_quotes = "followup_quotes.cli:main"
