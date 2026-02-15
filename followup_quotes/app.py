@@ -1,0 +1,70 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+from .config import ColumnMap, DEFAULT_ALLOWED_REPS, ORDER_SYNONYMS, QUOTE_SYNONYMS, RunConfig
+from .io_excel import detect_columns, read_excel, write_output
+from .matching import run_matching
+
+
+def generate_followup_workbook(cfg: RunConfig) -> Path:
+    quotes_df = read_excel(cfg.quotes_path, cfg.sheet_quotes)
+    orders_df = read_excel(cfg.orders_path, cfg.sheet_orders)
+
+    qdetect = detect_columns(
+        quotes_df,
+        QUOTE_SYNONYMS,
+        required_fields={"quote_number", "customer", "quote_amount", "date_quoted", "entry_person_name"},
+        overrides=cfg.column_map.quotes,
+    )
+    odetect = detect_columns(
+        orders_df,
+        ORDER_SYNONYMS,
+        required_fields={"customer", "net"},
+        overrides=cfg.column_map.orders,
+        contains_rules={"open": "open", "void": "void"},
+    )
+
+    result = run_matching(quotes_df, orders_df, qdetect.mapping, odetect.mapping, cfg)
+    sheets = {
+        "Option A (Rev Match)": result.option_a,
+        "Option B (No Rev Match)": result.option_b,
+        "Option C (Open Matched)": result.option_c,
+        "_Meta": result.meta,
+    }
+    if cfg.debug and result.debug is not None:
+        sheets["_Debug"] = result.debug
+
+    write_output(cfg.out_path, sheets)
+    return cfg.out_path
+
+
+def make_run_config(
+    quotes: str,
+    orders: str,
+    out: str,
+    *,
+    floor: float = 1500,
+    tolerance: float = 1,
+    sheet_quotes: str | None = None,
+    sheet_orders: str | None = None,
+    reps: list[str] | None = None,
+    debug: bool = False,
+    fuzzy: bool = False,
+    fuzzy_threshold: int = 90,
+    column_map: ColumnMap | None = None,
+) -> RunConfig:
+    return RunConfig(
+        quotes_path=Path(quotes),
+        orders_path=Path(orders),
+        out_path=Path(out),
+        floor=floor,
+        tolerance=tolerance,
+        sheet_quotes=sheet_quotes,
+        sheet_orders=sheet_orders,
+        reps=reps if reps is not None else DEFAULT_ALLOWED_REPS.copy(),
+        debug=debug,
+        fuzzy=fuzzy,
+        fuzzy_threshold=fuzzy_threshold,
+        column_map=column_map or ColumnMap(),
+    )
