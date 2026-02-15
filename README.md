@@ -92,3 +92,19 @@ Optional:
 - Order logs are often line-level; this tool groups lines to order totals when an Order ID exists.
 - If Rev is missing in either file, Option A automatically falls back to Option B and records this in `_Meta`.
 - If an Open column is missing, Option C is produced as an empty sheet and `_Meta` notes it.
+
+
+## CI build file (`.yml`)
+
+This repository includes a GitHub Actions workflow at:
+- `.github/workflows/build.yml`
+
+What it does:
+- Triggers on `push` and `pull_request`
+- Runs on Ubuntu
+- Tests Python `3.11` and `3.12`
+- Installs dependencies from `requirements.txt`
+- Runs a compile check: `python -m compileall followup_quotes tests`
+- Runs tests: `python -m pytest -q`
+
+If you want this adjusted for your environment (for example, pinned Python version, private package index, or Windows runner), edit this file directly.
