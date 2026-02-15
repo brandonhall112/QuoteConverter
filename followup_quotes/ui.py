@@ -3,8 +3,8 @@ from __future__ import annotations
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
-from .app import generate_followup_workbook, make_run_config
-from .config import FollowupError
+from followup_quotes.app import generate_followup_workbook, make_run_config
+from followup_quotes.config import FollowupError
 
 
 class FollowupUI(tk.Tk):

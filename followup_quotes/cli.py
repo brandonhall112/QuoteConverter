@@ -1,11 +1,18 @@
 from __future__ import annotations
 
+"""CLI entrypoint.
+
+Important design choice: this module delegates matching/excel pipeline execution to
+`followup_quotes.app.generate_followup_workbook` so CLI and UI always share the
+same behavior and we avoid duplicated import paths during merges.
+"""
+
 import argparse
 from pathlib import Path
 import sys
 
 from .app import generate_followup_workbook
-from .config import ColumnMap, FollowupError, load_reps, RunConfig
+from .config import ColumnMap, FollowupError, RunConfig, load_reps
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -31,8 +38,6 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        column_map = ColumnMap.from_json(args.column_map)
-        reps = load_reps(args.reps, args.reps_config)
         cfg = RunConfig(
             quotes_path=Path(args.quotes),
             orders_path=Path(args.orders),
@@ -41,11 +46,11 @@ def main(argv: list[str] | None = None) -> int:
             tolerance=args.tolerance,
             sheet_quotes=args.sheet_quotes,
             sheet_orders=args.sheet_orders,
-            reps=reps,
+            reps=load_reps(args.reps, args.reps_config),
             debug=args.debug,
             fuzzy=args.fuzzy,
             fuzzy_threshold=args.fuzzy_threshold,
-            column_map=column_map,
+            column_map=ColumnMap.from_json(args.column_map),
         )
 
         out = generate_followup_workbook(cfg)
