@@ -15,7 +15,7 @@ The output workbook contains **values only** (no formulas/macros) to avoid Excel
 
 1. **Quote Summary (.xlsx)** for the date range
 2. **Order Log (.xlsx)** for the same date range
-3. Run the CLI command and send the output workbook to your team
+3. Run the tool and send the output workbook to your team
 
 ---
 
@@ -30,7 +30,7 @@ The output workbook contains **values only** (no formulas/macros) to avoid Excel
 pip install -r requirements.txt
 ```
 
-## Usage
+## Usage (CLI)
 
 ```bash
 python -m followup_quotes.cli ^
@@ -39,13 +39,31 @@ python -m followup_quotes.cli ^
   --out "FollowUp_Output.xlsx"
 ```
 
-If you expose a console script named `followup_quotes`, this equivalent command works:
+Equivalent installed command:
 
 ```bash
 followup_quotes --quotes "Quote Summary.xlsx" --orders "Order Log.xlsx" --out "FollowUp_Output.xlsx"
 ```
 
-It is important to note that you can load an order log and quote summary on demand and generate an `.xlsx` workbook for team distribution with quotes to follow up.
+## Usage (Desktop UI)
+
+Run:
+
+```bash
+python -m followup_quotes.ui
+```
+
+Or installed command:
+
+```bash
+followup_quotes_ui
+```
+
+Then:
+1. Browse and select **Quote Summary** file
+2. Browse and select **Order Log** file
+3. Choose output `.xlsx` path
+4. Click **Generate Follow-Up Workbook**
 
 ## CLI
 
@@ -93,7 +111,6 @@ Optional:
 - If Rev is missing in either file, Option A automatically falls back to Option B and records this in `_Meta`.
 - If an Open column is missing, Option C is produced as an empty sheet and `_Meta` notes it.
 
-
 ## CI build file (`.yml`)
 
 This repository includes a GitHub Actions workflow at:
@@ -101,14 +118,17 @@ This repository includes a GitHub Actions workflow at:
 
 What it does:
 - Triggers on manual run (`workflow_dispatch`), `push`, and `pull_request`
-- Runs on Ubuntu
-- Tests Python `3.11` and `3.12`
-- Installs dependencies from `requirements.txt`
-- Runs a compile check: `python -m compileall followup_quotes tests`
-- Runs tests: `python -m pytest -q`
+- Runs tests on Ubuntu (Python 3.11 and 3.12)
+- Builds a **Windows executable** for the desktop UI using PyInstaller
+- Uploads the `.exe` as an Actions artifact named `FollowUpQuoteFinder-windows`
 
-If you want this adjusted for your environment (for example, pinned Python version, private package index, or Windows runner), edit this file directly.
+### Getting the executable from Actions
 
+1. Open GitHub **Actions** tab
+2. Run **Build and Test** workflow (or use an existing successful run)
+3. Open run details
+4. Download artifact: `FollowUpQuoteFinder-windows`
+5. Extract and use `FollowUpQuoteFinder.exe`
 
 ### Why “Run workflow” can be missing
 
@@ -116,5 +136,3 @@ If you do not see a **Run workflow** button in GitHub Actions:
 - Make sure the workflow file is on the repository's default branch (usually `main`).
 - Make sure `workflow_dispatch:` exists in the workflow `on:` block.
 - Ensure Actions are enabled for the repository/org.
-
-This project's workflow includes `workflow_dispatch`, so once merged to default branch it should be runnable from the Actions tab.
