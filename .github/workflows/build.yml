@@ -1,8 +1,13 @@
 name: Build and Test
 
 on:
+  workflow_dispatch:
   push:
-    branches: ["**"]
+    branches:
+      - main
+      - master
+      - develop
+      - 'feature/**'
   pull_request:
 
 jobs:

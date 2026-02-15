@@ -100,7 +100,7 @@ This repository includes a GitHub Actions workflow at:
 - `.github/workflows/build.yml`
 
 What it does:
-- Triggers on `push` and `pull_request`
+- Triggers on manual run (`workflow_dispatch`), `push`, and `pull_request`
 - Runs on Ubuntu
 - Tests Python `3.11` and `3.12`
 - Installs dependencies from `requirements.txt`
@@ -108,3 +108,13 @@ What it does:
 - Runs tests: `python -m pytest -q`
 
 If you want this adjusted for your environment (for example, pinned Python version, private package index, or Windows runner), edit this file directly.
+
+
+### Why “Run workflow” can be missing
+
+If you do not see a **Run workflow** button in GitHub Actions:
+- Make sure the workflow file is on the repository's default branch (usually `main`).
+- Make sure `workflow_dispatch:` exists in the workflow `on:` block.
+- Ensure Actions are enabled for the repository/org.
+
+This project's workflow includes `workflow_dispatch`, so once merged to default branch it should be runnable from the Actions tab.
