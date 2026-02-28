@@ -15,6 +15,7 @@ DEFAULT_TEMPLATE_CANDIDATES = [
     "Follow-Up Template.xlsx",
     "Followup Template.xlsx",
 ]
+ASSETS_DIR_NAME = "assets"
 
 
 def _sheet_name_for_rep(rep: str) -> str:
@@ -26,7 +27,13 @@ def resolve_template_path(explicit_template: Path | None) -> Path | None:
     if explicit_template:
         return explicit_template
 
-    search_roots = [Path.cwd(), Path(__file__).resolve().parent, Path(__file__).resolve().parent / "templates"]
+    search_roots = [
+        Path.cwd() / ASSETS_DIR_NAME,
+        Path.cwd(),
+        Path(__file__).resolve().parent / ASSETS_DIR_NAME,
+        Path(__file__).resolve().parent,
+        Path(__file__).resolve().parent / "templates",
+    ]
     for root in search_roots:
         for name in DEFAULT_TEMPLATE_CANDIDATES:
             candidate = root / name

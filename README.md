@@ -4,6 +4,7 @@ This tool compares a **Quote Summary** Excel export against an **Order Log** Exc
 
 It outputs one Excel workbook with:
 - **Follow-Up**: quotes needing follow-up based on customer + amount closeness match against grouped sales-order totals
+  - includes `One by Follow-Up` column (boolean) so your summary checkbox/count logic keeps working
 - **Per-rep tabs**: one sheet per `Entry Person Name` containing only that rep's follow-up lines
 - **_Meta**: run/config diagnostics
 
@@ -15,10 +16,21 @@ The output workbook contains values in data tabs, and can preserve template form
 
 1. **Quote Summary (.xlsx)** for the date range
 2. **Order Log (.xlsx)** for the same date range
-3. (Recommended) Keep your Follow-Up Summary template workbook in the project so it is auto-detected and used
+3. Put your template/icon files in `assets/` so they are auto-detected
 4. Run the tool and send the output workbook to your team
 
 ---
+
+
+## Assets folder
+
+Create/use this folder in repo root:
+
+- `assets/app.ico` (primary app/exe icon)
+- `assets/followup.ico` (fallback icon)
+- `assets/Follow-Up Summary Template.xlsx` (preferred template)
+
+The app auto-detects these assets by default (you can still override template path).
 
 ## Install
 
@@ -78,6 +90,7 @@ Optional:
 When `--template` is provided:
 - the template workbook is copied to the output path (auto-detected if not explicitly provided)
 - output sheets (`Follow-Up`, rep tabs, `_Meta`) are refreshed/created in-place
+- existing Excel table objects on template sheets are updated in-place (header/rows/ref), which avoids table repair prompts on open
 - non-output sheets (for example a summary tab with formulas/charts) are preserved
 
 ## Mapping override format
@@ -104,7 +117,7 @@ When `--template` is provided:
 - Matching is **Option B only**: customer + grouped order totals + tolerance.
 - Rev matching is not used.
 - Quote numbers are not expected to equal order numbers; matching compares customer + order-level totals from the order log against quote totals.
-- UI automatically applies an app icon when `followup_quotes/app.ico` (or `followup_quotes/followup.ico`) exists.
+- UI automatically applies an app icon when `assets/app.ico` (or `assets/followup.ico`) exists (with legacy fallbacks).
 - UI can auto-detect the template path and still allows override if needed.
 
 ## CI build file (`.yml`)

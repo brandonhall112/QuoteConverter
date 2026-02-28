@@ -55,7 +55,7 @@ jobs:
         shell: bash
         run: |
           ICON_PATH=""
-          for CAND in followup_quotes/app.ico followup_quotes/followup.ico app.ico followup.ico; do
+          for CAND in assets/app.ico assets/followup.ico followup_quotes/assets/app.ico followup_quotes/assets/followup.ico followup_quotes/app.ico followup_quotes/followup.ico app.ico followup.ico; do
             if [ -f "$CAND" ]; then
               ICON_PATH="$CAND"
               break

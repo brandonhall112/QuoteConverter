@@ -6,6 +6,7 @@ import re
 from typing import Iterable
 
 from openpyxl import Workbook, load_workbook
+from openpyxl.utils import get_column_letter, range_boundaries
 import pandas as pd
 
 from .config import FollowupError
@@ -117,35 +118,101 @@ def safe_excel_value(value: object) -> object:
     return value
 
 
-def _sheet_header_row(sheet, columns: list[str], scan_rows: int = 60) -> int:
-    target = [normalize_header(c) for c in columns]
+def _find_header_row_and_columns(sheet, columns: list[str], scan_rows: int = 80) -> tuple[int, dict[str, int]]:
+    targets = {normalize_header(c): c for c in columns}
+    best_row = 1
+    best_map: dict[str, int] = {}
+
     for r in range(1, min(scan_rows, sheet.max_row) + 1):
-        values = [normalize_header(sheet.cell(row=r, column=c).value) for c in range(1, len(columns) + 1)]
-        if values == target:
-            return r
-    return 1
+        found: dict[str, int] = {}
+        for c in range(1, max(sheet.max_column, len(columns)) + 1):
+            cell_value = sheet.cell(row=r, column=c).value
+            n = normalize_header(cell_value)
+            if n in targets and targets[n] not in found:
+                found[targets[n]] = c
+        if len(found) > len(best_map):
+            best_row = r
+            best_map = found
+        if len(found) == len(columns):
+            return r, found
+
+    return best_row, best_map
+
+
+def _find_matching_table(sheet, cols: list[str]):
+    if not sheet.tables:
+        return None
+
+    wanted = {normalize_header(c): c for c in cols}
+    for table in sheet.tables.values():
+        min_col, min_row, max_col, _ = range_boundaries(table.ref)
+        headers: dict[str, int] = {}
+        for cidx in range(min_col, max_col + 1):
+            label = sheet.cell(row=min_row, column=cidx).value
+            n = normalize_header(label)
+            if n in wanted:
+                headers[wanted[n]] = cidx
+        if all(c in headers for c in cols):
+            return table, min_row, headers
+    return None
+
+
+def _write_to_existing_table(sheet, df: pd.DataFrame, table, header_row: int, positions: dict[str, int]) -> None:
+    min_col, _, max_col, max_row = range_boundaries(table.ref)
+    data_start = header_row + 1
+
+    for r in range(data_start, max_row + 1):
+        for c in range(min_col, max_col + 1):
+            sheet.cell(row=r, column=c).value = None
+
+    for ridx, row in enumerate(df.itertuples(index=False, name=None), start=data_start):
+        for col, value in zip(df.columns, row):
+            sheet.cell(row=ridx, column=positions[str(col)]).value = safe_excel_value(value)
+
+    new_last_row = data_start + max(len(df), 1) - 1
+    if len(df) == 0:
+        for c in range(min_col, max_col + 1):
+            sheet.cell(row=data_start, column=c).value = None
+
+    table.ref = f"{get_column_letter(min_col)}{header_row}:{get_column_letter(max_col)}{new_last_row}"
 
 
 def _write_dataframe_to_sheet(sheet, df: pd.DataFrame) -> None:
     cols = [str(c) for c in df.columns]
-    header_row = _sheet_header_row(sheet, cols)
+    table_match = _find_matching_table(sheet, cols)
+    if table_match is not None:
+        table, header_row, positions = table_match
+        _write_to_existing_table(sheet, df, table, header_row, positions)
+        return
 
-    max_cols = max(len(cols), sheet.max_column)
-    for r in range(header_row + 1, sheet.max_row + 1):
-        for c in range(1, max_cols + 1):
-            sheet.cell(row=r, column=c).value = None
+    header_row, existing_positions = _find_header_row_and_columns(sheet, cols)
 
-    for c, col in enumerate(cols, start=1):
-        sheet.cell(row=header_row, column=c).value = col
+    positions = existing_positions.copy()
+    next_col = (max(existing_positions.values()) + 1) if existing_positions else 1
+    for col in cols:
+        if col not in positions:
+            positions[col] = next_col
+            next_col += 1
 
-    for ridx, row in enumerate(df.itertuples(index=False, name=None), start=header_row + 1):
-        for cidx, value in enumerate(row, start=1):
+    data_start = header_row + 1
+
+    for col in cols:
+        cidx = positions[col]
+        sheet.cell(row=header_row, column=cidx).value = col
+        for r in range(data_start, sheet.max_row + 1):
+            sheet.cell(row=r, column=cidx).value = None
+
+    for row_offset, row in enumerate(df.itertuples(index=False, name=None), start=0):
+        ridx = data_start + row_offset
+        for col, value in zip(cols, row):
+            cidx = positions[col]
             sheet.cell(row=ridx, column=cidx).value = safe_excel_value(value)
 
 
 def write_output(path: Path, sheets: dict[str, pd.DataFrame], template_path: Path | None = None) -> None:
     if template_path:
-        wb = load_workbook(template_path)
+        wb = load_workbook(template_path, keep_links=False)
+        wb._external_links = []
     else:
         wb = Workbook()
         default = wb.active

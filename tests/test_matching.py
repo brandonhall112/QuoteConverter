@@ -51,6 +51,8 @@ def test_option_b_only_followups_with_grouped_order_totals():
     out = run_matching(quotes, orders, qmap, omap, cfg)
 
     assert set(out.followups["Quote"]) == {"Q2"}
+    assert "One by Follow-Up" in out.followups.columns
+    assert out.followups["One by Follow-Up"].eq(False).all()
 
 
 def test_relative_tolerance_matches_customer_order_totals_without_id_link():

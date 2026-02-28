@@ -37,6 +37,10 @@ class FollowupUI(tk.Tk):
     def _set_app_icon(self) -> None:
         root = Path(__file__).resolve().parent
         candidates = [
+            Path.cwd() / "assets" / "app.ico",
+            Path.cwd() / "assets" / "followup.ico",
+            root / "assets" / "app.ico",
+            root / "assets" / "followup.ico",
             root / "app.ico",
             root / "followup.ico",
             Path.cwd() / "app.ico",
