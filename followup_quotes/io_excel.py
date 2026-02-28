@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 from typing import Iterable
 
+from openpyxl import Workbook, load_workbook
 import pandas as pd
 
 from .config import FollowupError
@@ -116,10 +117,46 @@ def safe_excel_value(value: object) -> object:
     return value
 
 
-def write_output(path: Path, sheets: dict[str, pd.DataFrame]) -> None:
-    with pd.ExcelWriter(path, engine="openpyxl") as writer:
-        for sheet, df in sheets.items():
-            cleaned = df.copy()
-            for col in cleaned.columns:
-                cleaned[col] = cleaned[col].map(safe_excel_value)
-            cleaned.to_excel(writer, index=False, sheet_name=sheet)
+def _sheet_header_row(sheet, columns: list[str], scan_rows: int = 60) -> int:
+    target = [normalize_header(c) for c in columns]
+    for r in range(1, min(scan_rows, sheet.max_row) + 1):
+        values = [normalize_header(sheet.cell(row=r, column=c).value) for c in range(1, len(columns) + 1)]
+        if values == target:
+            return r
+    return 1
+
+
+def _write_dataframe_to_sheet(sheet, df: pd.DataFrame) -> None:
+    cols = [str(c) for c in df.columns]
+    header_row = _sheet_header_row(sheet, cols)
+
+    max_cols = max(len(cols), sheet.max_column)
+    for r in range(header_row + 1, sheet.max_row + 1):
+        for c in range(1, max_cols + 1):
+            sheet.cell(row=r, column=c).value = None
+
+    for c, col in enumerate(cols, start=1):
+        sheet.cell(row=header_row, column=c).value = col
+
+    for ridx, row in enumerate(df.itertuples(index=False, name=None), start=header_row + 1):
+        for cidx, value in enumerate(row, start=1):
+            sheet.cell(row=ridx, column=cidx).value = safe_excel_value(value)
+
+
+def write_output(path: Path, sheets: dict[str, pd.DataFrame], template_path: Path | None = None) -> None:
+    if template_path:
+        wb = load_workbook(template_path)
+    else:
+        wb = Workbook()
+        default = wb.active
+        wb.remove(default)
+
+    for sheet_name, df in sheets.items():
+        if sheet_name in wb.sheetnames:
+            ws = wb[sheet_name]
+        else:
+            ws = wb.create_sheet(title=sheet_name)
+        _write_dataframe_to_sheet(ws, df)
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    wb.save(path)
