@@ -44,7 +44,6 @@ def _prep_quotes(quotes: pd.DataFrame, qmap: dict[str, str], cfg: RunConfig) -> 
     q["Entry Person Name"] = q[qmap["entry_person_name"]]
     q["Rev"] = q[qmap["rev"]] if "rev" in qmap else None
     q["CustKey"] = q["Customer"].map(normalize_customer)
-    q["QuoteOrderId"] = q[qmap["sales_order"]].map(_normalize_order_id) if "sales_order" in qmap else None
 
     q = q[q["Quote Amount"].notna()]
     q = q[q["Quote Amount"] > cfg.floor]
@@ -95,47 +94,12 @@ def _prep_order_candidates(orders: pd.DataFrame, omap: dict[str, str]) -> pd.Dat
 def _build_index(order_candidates: pd.DataFrame, with_rev: bool) -> dict[tuple, list[float]]:
     idx: dict[tuple, list[float]] = {}
     for _, row in order_candidates.iterrows():
-        order_id = row["OrderId"]
-        base_keys = [(row["CustKey"], order_id)]
-        if order_id is not None:
-            base_keys.append((row["CustKey"], None))
-
         if with_rev:
-            rev = None if pd.isna(row["Rev"]) else str(row["Rev"]).strip()
-            keys = [(*base, rev) for base in base_keys]
+            key = (row["CustKey"], None if pd.isna(row["Rev"]) else str(row["Rev"]).strip())
         else:
-            keys = base_keys
-
-        for key in keys:
-            idx.setdefault(key, []).append(float(row["OrderTotal"]))
+            key = (row["CustKey"],)
+        idx.setdefault(key, []).append(float(row["OrderTotal"]))
     return idx
-
-
-def _find_candidate_amounts(
-    quote_row: pd.Series,
-    index: dict[tuple, list[float]],
-    with_rev: bool,
-) -> list[float]:
-    order_id = quote_row.get("QuoteOrderId")
-    keys: list[tuple] = []
-    if with_rev:
-        rev = quote_row.get("Rev")
-        rev_key = None if pd.isna(rev) else str(rev).strip()
-        if order_id:
-            keys.append((quote_row["CustKey"], order_id, rev_key))
-        else:
-            keys.append((quote_row["CustKey"], None, rev_key))
-    else:
-        if order_id:
-            keys.append((quote_row["CustKey"], order_id))
-        else:
-            keys.append((quote_row["CustKey"], None))
-
-    for key in keys:
-        amounts = index.get(key, [])
-        if amounts:
-            return amounts
-    return []
 
 
 def _quote_is_matched(
@@ -144,7 +108,13 @@ def _quote_is_matched(
     cfg: RunConfig,
     with_rev: bool,
 ) -> bool:
-    amounts = _find_candidate_amounts(quote_row, index, with_rev)
+    if with_rev:
+        rev = quote_row.get("Rev")
+        key = (quote_row["CustKey"], None if pd.isna(rev) else str(rev).strip())
+    else:
+        key = (quote_row["CustKey"],)
+
+    amounts = index.get(key, [])
     qamt = float(quote_row["Quote Amount"])
     return any(_money_match(oa, qamt, cfg) for oa in amounts)
 
@@ -185,10 +155,8 @@ def run_matching(quotes: pd.DataFrame, orders: pd.DataFrame, qmap: dict[str, str
     option_b = _dedupe_sort(q[~q["MatchedB"]].copy(), include_rev="rev" in qmap)[OUTPUT_COLUMNS]
     option_c = _dedupe_sort(q[q["MatchedOpen"]].copy(), include_rev="rev" in qmap)[OUTPUT_COLUMNS]
 
-    matched_with_sales_order = int(q["QuoteOrderId"].notna().sum()) if "QuoteOrderId" in q.columns else 0
     meta_rows = [
         ("quotes_total_filtered", len(q)),
-        ("quotes_with_sales_order", matched_with_sales_order),
         ("option_a_followups", len(option_a)),
         ("option_b_followups", len(option_b)),
         ("option_c_open_matched", len(option_c)),
@@ -213,7 +181,6 @@ def run_matching(quotes: pd.DataFrame, orders: pd.DataFrame, qmap: dict[str, str
                 "Date Quoted",
                 "Entry Person Name",
                 "Rev",
-                "QuoteOrderId",
                 "MatchedA",
                 "MatchedB",
                 "MatchedOpen",

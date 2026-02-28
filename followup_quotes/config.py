@@ -17,14 +17,6 @@ DEFAULT_ALLOWED_REPS = [
 
 QUOTE_SYNONYMS = {
     "quote_number": ["Quote", "Quote #", "Quote Number", "Quote No", "QuoteNum"],
-    "sales_order": [
-        "Sales Order",
-        "Sales Order #",
-        "Sales Order Number",
-        "Order Number",
-        "SO",
-        "SO #",
-    ],
     "customer": ["Customer", "Customer Name", "Cust. Name", "Account", "Bill To Name"],
     "quote_amount": ["Quote Amount", "Amount", "Total", "Quoted Total"],
     "date_quoted": ["Date Quoted", "Quote Date", "Entry Date", "Quoted Date"],

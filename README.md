@@ -109,7 +109,7 @@ Optional:
 ## Notes
 
 - Order logs are often line-level; this tool groups lines to order totals by Sales Order/Order ID when available.
-- If Quote Summary includes a Sales Order field, matching prioritizes that specific order number + customer before any customer-level fallback.
+- Quote numbers are not expected to equal order numbers; matching compares customer + order-level totals from the order log against quote totals.
 - If Rev is missing in either file, Option A automatically falls back to Option B and records this in `_Meta`.
 - If an Open column is missing, Option C is produced as an empty sheet and `_Meta` notes it.
 
