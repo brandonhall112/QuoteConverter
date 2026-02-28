@@ -48,7 +48,10 @@ def test_write_output_preserves_template_formula_sheet_and_checkbox_column(tmp_p
     assert out_wb["Summary"]["D1"].value == "=COUNTIF('Follow-Up'!C:C,TRUE)"
 
 
-def test_generate_followup_workbook_creates_per_rep_tabs(tmp_path: Path):
+def test_generate_followup_workbook_creates_per_rep_tabs(tmp_path: Path, monkeypatch):
+    # Ensure this test is deterministic and not influenced by repo-level auto-detected templates.
+    monkeypatch.chdir(tmp_path)
+
     quotes_path = tmp_path / "quotes.xlsx"
     orders_path = tmp_path / "orders.xlsx"
     out_path = tmp_path / "output.xlsx"
