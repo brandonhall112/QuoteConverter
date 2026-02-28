@@ -120,3 +120,19 @@ def test_write_output_updates_existing_table_ref(tmp_path: Path):
     out_ws = out_wb["Follow-Up"]
     assert out_ws.tables["Table1"].ref == "A1:F4"
     assert out_ws["A4"].value == "Q3"
+
+
+def test_write_output_new_sheet_starts_at_column_a(tmp_path: Path):
+    out = tmp_path / "plain.xlsx"
+    write_output(
+        out,
+        {
+            "Eric Simpson": pd.DataFrame([{"Quote": "Q2", "Customer": "BETA", "Won by Follow Up?": False}])
+        },
+        template_path=None,
+    )
+
+    wb = load_workbook(out)
+    ws = wb["Eric Simpson"]
+    assert ws["A1"].value == "Quote"
+    assert ws["A2"].value == "Q2"

@@ -21,7 +21,9 @@ class DetectionResult:
     notes: list[str]
 
 
-def normalize_header(value: str) -> str:
+def normalize_header(value: object) -> str:
+    if value is None:
+        return ""
     return " ".join(str(value).strip().lower().split())
 
 
