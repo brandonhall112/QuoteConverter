@@ -35,7 +35,7 @@ def generate_followup_workbook(cfg: RunConfig) -> Path:
     if cfg.debug and result.debug is not None:
         sheets["_Debug"] = result.debug
 
-    write_output(cfg.out_path, sheets)
+    write_output(cfg.out_path, sheets, cfg.template_path)
     return cfg.out_path
 
 
@@ -54,6 +54,7 @@ def make_run_config(
     fuzzy: bool = False,
     fuzzy_threshold: int = 90,
     column_map: ColumnMap | None = None,
+    template: str | None = None,
 ) -> RunConfig:
     return RunConfig(
         quotes_path=Path(quotes),
@@ -69,4 +70,5 @@ def make_run_config(
         fuzzy=fuzzy,
         fuzzy_threshold=fuzzy_threshold,
         column_map=column_map or ColumnMap(),
+        template_path=Path(template) if template else None,
     )

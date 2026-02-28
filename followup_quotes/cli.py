@@ -29,6 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--reps-config")
     p.add_argument("--debug", action="store_true")
     p.add_argument("--column-map")
+    p.add_argument("--template", help="Optional output template workbook (.xlsx)")
     p.add_argument("--fuzzy", action="store_true")
     p.add_argument("--fuzzy-threshold", type=int, default=90)
     return p
@@ -53,6 +54,7 @@ def main(argv: list[str] | None = None) -> int:
             fuzzy=args.fuzzy,
             fuzzy_threshold=args.fuzzy_threshold,
             column_map=ColumnMap.from_json(args.column_map),
+            template_path=Path(args.template) if args.template else None,
         )
 
         out = generate_followup_workbook(cfg)

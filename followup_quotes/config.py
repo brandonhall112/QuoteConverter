@@ -80,6 +80,7 @@ class RunConfig:
     fuzzy: bool = False
     fuzzy_threshold: int = 90
     column_map: ColumnMap = field(default_factory=ColumnMap)
+    template_path: Path | None = None
 
 
 def load_reps(reps: list[str] | None, reps_config: str | None) -> list[str]:

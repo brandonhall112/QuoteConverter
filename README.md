@@ -15,7 +15,8 @@ The output workbook contains **values only** (no formulas/macros) to avoid Excel
 
 1. **Quote Summary (.xlsx)** for the date range
 2. **Order Log (.xlsx)** for the same date range
-3. Run the tool and send the output workbook to your team
+3. (Optional) Follow-up Summary template workbook (.xlsx) if you want to preserve summary formulas/layout
+4. Run the tool and send the output workbook to your team
 
 ---
 
@@ -81,8 +82,19 @@ Optional:
 - `--reps "Name1" "Name2" ...`
 - `--reps-config reps.json`
 - `--column-map mapping.json`
+- `--template "Followup_Template.xlsx"` (optional; writes results into existing template sheets and preserves other formula tabs)
 - `--debug`
 - `--fuzzy --fuzzy-threshold 90` (accepted; default matching remains normalized-exact)
+
+
+## Template output behavior
+
+When `--template` is provided:
+- the template workbook is copied to the output path
+- data sheets (`Option A (Rev Match)`, `Option B (No Rev Match)`, `Option C (Open Matched)`, `_Meta`) are refreshed in-place
+- non-output sheets (for example a summary tab with formulas/charts) are preserved
+
+This lets you keep your summary formulas/macros/layout while updating follow-up data from the latest run.
 
 ## Mapping override format
 
@@ -112,6 +124,8 @@ Optional:
 - Quote numbers are not expected to equal order numbers; matching compares customer + order-level totals from the order log against quote totals.
 - If Rev is missing in either file, Option A automatically falls back to Option B and records this in `_Meta`.
 - If an Open column is missing, Option C is produced as an empty sheet and `_Meta` notes it.
+
+- UI includes optional template and icon selectors, plus a refreshed modernized layout.
 
 ## CI build file (`.yml`)
 
