@@ -55,6 +55,56 @@ def test_option_a_b_c_and_grouping():
     assert set(out.option_c["Quote"]) == {"Q1", "Q4"}
 
 
+def test_relative_tolerance_matches_customer_order_totals_without_id_link():
+    quotes = pd.DataFrame(
+        {
+            "Quote #": ["Q-WON", "Q-UNCONVERTED"],
+            "Customer": ["Acme", "Acme"],
+            "Amount": [5000, 5600],
+            "Date Quoted": ["2024-01-01", "2024-01-01"],
+            "Entry Person Name": ["Reid Kincaid", "Reid Kincaid"],
+        }
+    )
+    orders = pd.DataFrame(
+        {
+            "Order Number": ["100", "100", "300"],
+            "Customer": ["ACME", "ACME", "ACME"],
+            "Net Amount": [2400, 2500, 4300],
+        }
+    )
+    qmap = {
+        "quote_number": "Quote #",
+        "customer": "Customer",
+        "quote_amount": "Amount",
+        "date_quoted": "Date Quoted",
+        "entry_person_name": "Entry Person Name",
+    }
+    omap = {"order_id": "Order Number", "customer": "Customer", "net": "Net Amount"}
+
+    strict_cfg = RunConfig(
+        quotes_path=Path("q.xlsx"),
+        orders_path=Path("o.xlsx"),
+        out_path=Path("x.xlsx"),
+        reps=["Reid Kincaid"],
+        tolerance=25,
+        relative_tolerance=0.0,
+    )
+    relaxed_cfg = RunConfig(
+        quotes_path=Path("q.xlsx"),
+        orders_path=Path("o.xlsx"),
+        out_path=Path("x.xlsx"),
+        reps=["Reid Kincaid"],
+        tolerance=25,
+        relative_tolerance=0.03,
+    )
+
+    strict = run_matching(quotes, orders, qmap, omap, strict_cfg)
+    relaxed = run_matching(quotes, orders, qmap, omap, relaxed_cfg)
+
+    assert set(strict.option_b["Quote"]) == {"Q-WON", "Q-UNCONVERTED"}
+    assert set(relaxed.option_b["Quote"]) == {"Q-UNCONVERTED"}
+
+
 def test_rev_fallback_when_missing():
     quotes = pd.DataFrame(
         {

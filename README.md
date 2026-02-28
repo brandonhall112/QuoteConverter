@@ -3,9 +3,9 @@
 This tool compares a **Quote Summary** Excel export against an **Order Log** Excel export and produces follow-up call lists.
 
 It outputs one Excel workbook with:
-- **Option A (Rev Match)**: follow-ups where customer + amount ±$1 + Rev must match (falls back if Rev missing)
-- **Option B (No Rev Match)**: follow-ups where customer + amount ±$1 match (Rev ignored)
-- **Option C (Open Matched)**: sanity list of quotes that match an **Open** order (customer + amount ±$1)
+- **Option A (Rev Match)**: follow-ups where customer + amount + Rev must match (uses absolute/relative tolerance; falls back if Rev missing)
+- **Option B (No Rev Match)**: follow-ups where customer + amount match (uses absolute/relative tolerance; Rev ignored)
+- **Option C (Open Matched)**: sanity list of quotes that match an **Open** order (customer + amount tolerance match)
 
 The output workbook contains **values only** (no formulas/macros) to avoid Excel security prompts.
 
@@ -15,7 +15,8 @@ The output workbook contains **values only** (no formulas/macros) to avoid Excel
 
 1. **Quote Summary (.xlsx)** for the date range
 2. **Order Log (.xlsx)** for the same date range
-3. Run the tool and send the output workbook to your team
+3. (Optional) Follow-up Summary template workbook (.xlsx) if you want to preserve summary formulas/layout
+4. Run the tool and send the output workbook to your team
 
 ---
 
@@ -75,13 +76,25 @@ Required:
 Optional:
 - `--floor 1500`
 - `--tolerance 1`
+- `--relative-tolerance 0.05` (5% default; matching uses max of absolute and relative tolerance)
 - `--sheet-quotes "SheetName"`
 - `--sheet-orders "SheetName"`
 - `--reps "Name1" "Name2" ...`
 - `--reps-config reps.json`
 - `--column-map mapping.json`
+- `--template "Followup_Template.xlsx"` (optional; writes results into existing template sheets and preserves other formula tabs)
 - `--debug`
 - `--fuzzy --fuzzy-threshold 90` (accepted; default matching remains normalized-exact)
+
+
+## Template output behavior
+
+When `--template` is provided:
+- the template workbook is copied to the output path
+- data sheets (`Option A (Rev Match)`, `Option B (No Rev Match)`, `Option C (Open Matched)`, `_Meta`) are refreshed in-place
+- non-output sheets (for example a summary tab with formulas/charts) are preserved
+
+This lets you keep your summary formulas/macros/layout while updating follow-up data from the latest run.
 
 ## Mapping override format
 
@@ -107,9 +120,12 @@ Optional:
 
 ## Notes
 
-- Order logs are often line-level; this tool groups lines to order totals when an Order ID exists.
+- Order logs are often line-level; this tool groups lines to order totals by Sales Order/Order ID when available.
+- Quote numbers are not expected to equal order numbers; matching compares customer + order-level totals from the order log against quote totals.
 - If Rev is missing in either file, Option A automatically falls back to Option B and records this in `_Meta`.
 - If an Open column is missing, Option C is produced as an empty sheet and `_Meta` notes it.
+
+- UI includes optional template and icon selectors, plus a refreshed modernized layout.
 
 ## CI build file (`.yml`)
 

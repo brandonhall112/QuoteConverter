@@ -22,12 +22,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--out", required=True, help="Path for output xlsx")
     p.add_argument("--floor", type=float, default=1500)
     p.add_argument("--tolerance", type=float, default=1)
+    p.add_argument("--relative-tolerance", type=float, default=0.05)
     p.add_argument("--sheet-quotes")
     p.add_argument("--sheet-orders")
     p.add_argument("--reps", nargs="*")
     p.add_argument("--reps-config")
     p.add_argument("--debug", action="store_true")
     p.add_argument("--column-map")
+    p.add_argument("--template", help="Optional output template workbook (.xlsx)")
     p.add_argument("--fuzzy", action="store_true")
     p.add_argument("--fuzzy-threshold", type=int, default=90)
     return p
@@ -44,6 +46,7 @@ def main(argv: list[str] | None = None) -> int:
             out_path=Path(args.out),
             floor=args.floor,
             tolerance=args.tolerance,
+            relative_tolerance=args.relative_tolerance,
             sheet_quotes=args.sheet_quotes,
             sheet_orders=args.sheet_orders,
             reps=load_reps(args.reps, args.reps_config),
@@ -51,6 +54,7 @@ def main(argv: list[str] | None = None) -> int:
             fuzzy=args.fuzzy,
             fuzzy_threshold=args.fuzzy_threshold,
             column_map=ColumnMap.from_json(args.column_map),
+            template_path=Path(args.template) if args.template else None,
         )
 
         out = generate_followup_workbook(cfg)
