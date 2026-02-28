@@ -5,6 +5,7 @@ import ctypes
 import sys
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
+from pathlib import Path
 
 from followup_quotes.app import generate_followup_workbook, make_run_config, resolve_template_path
 from followup_quotes.config import FollowupError
@@ -21,6 +22,7 @@ class FollowupUI(tk.Tk):
         self.order_path = tk.StringVar()
         self.template_path = tk.StringVar(value=self._default_template_label())
         self.output_path = tk.StringVar()
+        self.icon_path = tk.StringVar()
         self.floor_value = tk.StringVar(value="1500")
         self.tolerance_value = tk.StringVar(value="1")
         self.relative_tolerance_value = tk.StringVar(value="0.05")
