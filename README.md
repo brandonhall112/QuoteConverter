@@ -80,6 +80,16 @@ When `--template` is provided:
 - output sheets (`Follow-Up`, rep tabs, `_Meta`) are refreshed/created in-place
 - non-output sheets (for example a summary tab with formulas/charts) are preserved
 
+
+## Template output behavior
+
+When `--template` is provided:
+- the template workbook is copied to the output path
+- data sheets (`Option A (Rev Match)`, `Option B (No Rev Match)`, `Option C (Open Matched)`, `_Meta`) are refreshed in-place
+- non-output sheets (for example a summary tab with formulas/charts) are preserved
+
+This lets you keep your summary formulas/macros/layout while updating follow-up data from the latest run.
+
 ## Mapping override format
 
 ```json
@@ -104,6 +114,8 @@ When `--template` is provided:
 - Matching is **Option B only**: customer + grouped order totals + tolerance.
 - Rev matching is not used.
 - Quote numbers are not expected to equal order numbers; matching compares customer + order-level totals from the order log against quote totals.
+- UI includes optional template and icon selectors, plus a refreshed modernized layout.
+
 - UI includes optional template and icon selectors, plus a refreshed modernized layout.
 
 ## CI build file (`.yml`)
