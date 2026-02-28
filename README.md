@@ -3,9 +3,9 @@
 This tool compares a **Quote Summary** Excel export against an **Order Log** Excel export and produces follow-up call lists.
 
 It outputs one Excel workbook with:
-- **Option A (Rev Match)**: follow-ups where customer + amount ±$1 + Rev must match (falls back if Rev missing)
-- **Option B (No Rev Match)**: follow-ups where customer + amount ±$1 match (Rev ignored)
-- **Option C (Open Matched)**: sanity list of quotes that match an **Open** order (customer + amount ±$1)
+- **Option A (Rev Match)**: follow-ups where customer + amount + Rev must match (uses absolute/relative tolerance; falls back if Rev missing)
+- **Option B (No Rev Match)**: follow-ups where customer + amount match (uses absolute/relative tolerance; Rev ignored)
+- **Option C (Open Matched)**: sanity list of quotes that match an **Open** order (customer + amount tolerance match)
 
 The output workbook contains **values only** (no formulas/macros) to avoid Excel security prompts.
 
@@ -75,6 +75,7 @@ Required:
 Optional:
 - `--floor 1500`
 - `--tolerance 1`
+- `--relative-tolerance 0.05` (5% default; matching uses max of absolute and relative tolerance)
 - `--sheet-quotes "SheetName"`
 - `--sheet-orders "SheetName"`
 - `--reps "Name1" "Name2" ...`
@@ -107,7 +108,8 @@ Optional:
 
 ## Notes
 
-- Order logs are often line-level; this tool groups lines to order totals when an Order ID exists.
+- Order logs are often line-level; this tool groups lines to order totals by Sales Order/Order ID when available.
+- Quote numbers are not expected to equal order numbers; matching compares customer + order-level totals from the order log against quote totals.
 - If Rev is missing in either file, Option A automatically falls back to Option B and records this in `_Meta`.
 - If an Open column is missing, Option C is produced as an empty sheet and `_Meta` notes it.
 

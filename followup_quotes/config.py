@@ -72,6 +72,7 @@ class RunConfig:
     out_path: Path
     floor: float = 1500.0
     tolerance: float = 1.0
+    relative_tolerance: float = 0.05
     sheet_quotes: str | None = None
     sheet_orders: str | None = None
     reps: list[str] = field(default_factory=lambda: DEFAULT_ALLOWED_REPS.copy())

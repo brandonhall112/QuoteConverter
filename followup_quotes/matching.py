@@ -19,11 +19,20 @@ class MatchResult:
     debug: pd.DataFrame | None
 
 
-def _money_match(order_total: float, quote_amount: float, tolerance: float) -> bool:
+def _normalize_order_id(value: object) -> str | None:
+    if pd.isna(value):
+        return None
+    token = str(value).strip()
+    return token or None
+
+
+def _money_match(order_total: float, quote_amount: float, cfg: RunConfig) -> bool:
     diff = abs(order_total - quote_amount)
     if diff <= 0.005:
         return True
-    return diff <= tolerance
+    relative_limit = abs(quote_amount) * cfg.relative_tolerance
+    effective_tolerance = max(cfg.tolerance, relative_limit)
+    return diff <= effective_tolerance
 
 
 def _prep_quotes(quotes: pd.DataFrame, qmap: dict[str, str], cfg: RunConfig) -> pd.DataFrame:
@@ -56,7 +65,7 @@ def _prep_order_candidates(orders: pd.DataFrame, omap: dict[str, str]) -> pd.Dat
         out["OrderId"] = None
         return out
 
-    o["OrderId"] = o[omap["order_id"]]
+    o["OrderId"] = o[omap["order_id"]].map(_normalize_order_id)
     grouped = (
         o.groupby(["OrderId", "CustKey"], dropna=False)
         .agg(OrderTotal=("Net", "sum"), OpenOrder=("Open", "max"))
@@ -96,7 +105,7 @@ def _build_index(order_candidates: pd.DataFrame, with_rev: bool) -> dict[tuple, 
 def _quote_is_matched(
     quote_row: pd.Series,
     index: dict[tuple, list[float]],
-    tolerance: float,
+    cfg: RunConfig,
     with_rev: bool,
 ) -> bool:
     if with_rev:
@@ -104,9 +113,10 @@ def _quote_is_matched(
         key = (quote_row["CustKey"], None if pd.isna(rev) else str(rev).strip())
     else:
         key = (quote_row["CustKey"],)
+
     amounts = index.get(key, [])
     qamt = float(quote_row["Quote Amount"])
-    return any(_money_match(oa, qamt, tolerance) for oa in amounts)
+    return any(_money_match(oa, qamt, cfg) for oa in amounts)
 
 
 def _dedupe_sort(df: pd.DataFrame, include_rev: bool) -> pd.DataFrame:
@@ -122,20 +132,20 @@ def run_matching(quotes: pd.DataFrame, orders: pd.DataFrame, qmap: dict[str, str
     order_candidates = _prep_order_candidates(orders, omap)
 
     b_index = _build_index(order_candidates, with_rev=False)
-    q["MatchedB"] = q.apply(lambda r: _quote_is_matched(r, b_index, cfg.tolerance, with_rev=False), axis=1)
+    q["MatchedB"] = q.apply(lambda r: _quote_is_matched(r, b_index, cfg, with_rev=False), axis=1)
 
     rev_available = "rev" in qmap and "rev" in omap
     fallback_note = None
     if rev_available:
         a_index = _build_index(order_candidates, with_rev=True)
-        q["MatchedA"] = q.apply(lambda r: _quote_is_matched(r, a_index, cfg.tolerance, with_rev=True), axis=1)
+        q["MatchedA"] = q.apply(lambda r: _quote_is_matched(r, a_index, cfg, with_rev=True), axis=1)
     else:
         q["MatchedA"] = q["MatchedB"]
         fallback_note = "Rev not available; Option A fell back to Option B"
 
     if "open" in omap:
         open_index = _build_index(order_candidates[order_candidates["Open"]], with_rev=False)
-        q["MatchedOpen"] = q.apply(lambda r: _quote_is_matched(r, open_index, cfg.tolerance, with_rev=False), axis=1)
+        q["MatchedOpen"] = q.apply(lambda r: _quote_is_matched(r, open_index, cfg, with_rev=False), axis=1)
         open_note = ""
     else:
         q["MatchedOpen"] = False
@@ -152,6 +162,7 @@ def run_matching(quotes: pd.DataFrame, orders: pd.DataFrame, qmap: dict[str, str
         ("option_c_open_matched", len(option_c)),
         ("floor", cfg.floor),
         ("tolerance", cfg.tolerance),
+        ("relative_tolerance", cfg.relative_tolerance),
         ("reps_count", len(cfg.reps)),
         ("rev_available_both_files", rev_available),
         ("quotes_mapping", str(qmap)),
