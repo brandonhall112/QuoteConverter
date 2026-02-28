@@ -1,13 +1,13 @@
 # Follow-Up Quote Finder
 
-This tool compares a **Quote Summary** Excel export against an **Order Log** Excel export and produces follow-up call lists.
+This tool compares a **Quote Summary** Excel export against an **Order Log** Excel export and produces one follow-up list of **unconverted quotes**.
 
 It outputs one Excel workbook with:
-- **Option A (Rev Match)**: follow-ups where customer + amount ±$1 + Rev must match (falls back if Rev missing)
-- **Option B (No Rev Match)**: follow-ups where customer + amount ±$1 match (Rev ignored)
-- **Option C (Open Matched)**: sanity list of quotes that match an **Open** order (customer + amount ±$1)
+- **Follow-Up**: quotes needing follow-up based on customer + amount closeness match against grouped sales-order totals
+- **Per-rep tabs**: one sheet per `Entry Person Name` containing only that rep's follow-up lines
+- **_Meta**: run/config diagnostics
 
-The output workbook contains **values only** (no formulas/macros) to avoid Excel security prompts.
+The output workbook contains values in data tabs, and can preserve template formulas/layout when a template file is provided.
 
 ---
 
@@ -15,7 +15,8 @@ The output workbook contains **values only** (no formulas/macros) to avoid Excel
 
 1. **Quote Summary (.xlsx)** for the date range
 2. **Order Log (.xlsx)** for the same date range
-3. Run the tool and send the output workbook to your team
+3. (Recommended) Keep your Follow-Up Summary template workbook in the project so it is auto-detected and used
+4. Run the tool and send the output workbook to your team
 
 ---
 
@@ -53,18 +54,6 @@ Run:
 python -m followup_quotes.ui
 ```
 
-Or installed command:
-
-```bash
-followup_quotes_ui
-```
-
-Then:
-1. Browse and select **Quote Summary** file
-2. Browse and select **Order Log** file
-3. Choose output `.xlsx` path
-4. Click **Generate Follow-Up Workbook**
-
 ## CLI
 
 Required:
@@ -75,13 +64,21 @@ Required:
 Optional:
 - `--floor 1500`
 - `--tolerance 1`
+- `--relative-tolerance 0.05` (5% default; matching uses max of absolute and relative tolerance)
 - `--sheet-quotes "SheetName"`
 - `--sheet-orders "SheetName"`
 - `--reps "Name1" "Name2" ...`
 - `--reps-config reps.json`
 - `--column-map mapping.json`
+- `--template "Followup_Template.xlsx"` (optional override; if omitted, app auto-detects common template filenames)
 - `--debug`
-- `--fuzzy --fuzzy-threshold 90` (accepted; default matching remains normalized-exact)
+
+## Template output behavior
+
+When `--template` is provided:
+- the template workbook is copied to the output path (auto-detected if not explicitly provided)
+- output sheets (`Follow-Up`, rep tabs, `_Meta`) are refreshed/created in-place
+- non-output sheets (for example a summary tab with formulas/charts) are preserved
 
 ## Mapping override format
 
@@ -92,24 +89,23 @@ Optional:
     "customer": "Customer Name",
     "quote_amount": "Amount",
     "date_quoted": "Quote Date",
-    "entry_person_name": "Created By",
-    "rev": "Rev"
+    "entry_person_name": "Created By"
   },
   "orders": {
     "customer": "Customer",
     "net": "Net Amount",
-    "order_id": "Order Number",
-    "rev": "Revision",
-    "open": "Open"
+    "order_id": "Order Number"
   }
 }
 ```
 
 ## Notes
 
-- Order logs are often line-level; this tool groups lines to order totals when an Order ID exists.
-- If Rev is missing in either file, Option A automatically falls back to Option B and records this in `_Meta`.
-- If an Open column is missing, Option C is produced as an empty sheet and `_Meta` notes it.
+- Matching is **Option B only**: customer + grouped order totals + tolerance.
+- Rev matching is not used.
+- Quote numbers are not expected to equal order numbers; matching compares customer + order-level totals from the order log against quote totals.
+- UI automatically applies an app icon when `followup_quotes/app.ico` (or `followup_quotes/followup.ico`) exists.
+- UI can auto-detect the template path and still allows override if needed.
 
 ## CI build file (`.yml`)
 
@@ -117,22 +113,7 @@ This repository includes a GitHub Actions workflow at:
 - `.github/workflows/build.yml`
 
 What it does:
-- Triggers on manual run (`workflow_dispatch`), `push`, and `pull_request`
+- Triggers **manually only** (`workflow_dispatch`)
 - Runs tests on Ubuntu (Python 3.11 and 3.12)
 - Builds a **Windows executable** for the desktop UI using PyInstaller
 - Uploads the `.exe` as an Actions artifact named `FollowUpQuoteFinder-windows`
-
-### Getting the executable from Actions
-
-1. Open GitHub **Actions** tab
-2. Run **Build and Test** workflow (or use an existing successful run)
-3. Open run details
-4. Download artifact: `FollowUpQuoteFinder-windows`
-5. Extract and use `FollowUpQuoteFinder.exe`
-
-### Why “Run workflow” can be missing
-
-If you do not see a **Run workflow** button in GitHub Actions:
-- Make sure the workflow file is on the repository's default branch (usually `main`).
-- Make sure `workflow_dispatch:` exists in the workflow `on:` block.
-- Ensure Actions are enabled for the repository/org.
