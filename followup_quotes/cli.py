@@ -22,6 +22,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--out", required=True, help="Path for output xlsx")
     p.add_argument("--floor", type=float, default=1500)
     p.add_argument("--tolerance", type=float, default=1)
+    p.add_argument("--relative-tolerance", type=float, default=0.05)
     p.add_argument("--sheet-quotes")
     p.add_argument("--sheet-orders")
     p.add_argument("--reps", nargs="*")
@@ -44,6 +45,7 @@ def main(argv: list[str] | None = None) -> int:
             out_path=Path(args.out),
             floor=args.floor,
             tolerance=args.tolerance,
+            relative_tolerance=args.relative_tolerance,
             sheet_quotes=args.sheet_quotes,
             sheet_orders=args.sheet_orders,
             reps=load_reps(args.reps, args.reps_config),

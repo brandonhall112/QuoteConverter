@@ -55,6 +55,47 @@ def test_option_a_b_c_and_grouping():
     assert set(out.option_c["Quote"]) == {"Q1", "Q4"}
 
 
+def test_sales_order_id_is_used_to_prevent_false_followups():
+    quotes = pd.DataFrame(
+        {
+            "Quote #": ["Q-WON", "Q-UNCONVERTED"],
+            "Customer": ["Acme", "Acme"],
+            "Sales Order": ["100", "200"],
+            "Amount": [5000, 5000],
+            "Date Quoted": ["2024-01-01", "2024-01-01"],
+            "Entry Person Name": ["Reid Kincaid", "Reid Kincaid"],
+        }
+    )
+    orders = pd.DataFrame(
+        {
+            "Order Number": ["100", "300"],
+            "Customer": ["ACME", "ACME"],
+            "Net Amount": [4900, 5000],
+        }
+    )
+    qmap = {
+        "quote_number": "Quote #",
+        "sales_order": "Sales Order",
+        "customer": "Customer",
+        "quote_amount": "Amount",
+        "date_quoted": "Date Quoted",
+        "entry_person_name": "Entry Person Name",
+    }
+    omap = {"order_id": "Order Number", "customer": "Customer", "net": "Net Amount"}
+    cfg = RunConfig(
+        quotes_path=Path("q.xlsx"),
+        orders_path=Path("o.xlsx"),
+        out_path=Path("x.xlsx"),
+        reps=["Reid Kincaid"],
+        tolerance=25,
+        relative_tolerance=0.03,
+    )
+
+    out = run_matching(quotes, orders, qmap, omap, cfg)
+
+    assert set(out.option_b["Quote"]) == {"Q-UNCONVERTED"}
+
+
 def test_rev_fallback_when_missing():
     quotes = pd.DataFrame(
         {

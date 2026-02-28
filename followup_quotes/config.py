@@ -17,6 +17,14 @@ DEFAULT_ALLOWED_REPS = [
 
 QUOTE_SYNONYMS = {
     "quote_number": ["Quote", "Quote #", "Quote Number", "Quote No", "QuoteNum"],
+    "sales_order": [
+        "Sales Order",
+        "Sales Order #",
+        "Sales Order Number",
+        "Order Number",
+        "SO",
+        "SO #",
+    ],
     "customer": ["Customer", "Customer Name", "Cust. Name", "Account", "Bill To Name"],
     "quote_amount": ["Quote Amount", "Amount", "Total", "Quoted Total"],
     "date_quoted": ["Date Quoted", "Quote Date", "Entry Date", "Quoted Date"],
@@ -72,6 +80,7 @@ class RunConfig:
     out_path: Path
     floor: float = 1500.0
     tolerance: float = 1.0
+    relative_tolerance: float = 0.05
     sheet_quotes: str | None = None
     sheet_orders: str | None = None
     reps: list[str] = field(default_factory=lambda: DEFAULT_ALLOWED_REPS.copy())
