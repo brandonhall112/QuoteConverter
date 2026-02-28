@@ -3,7 +3,7 @@ from pathlib import Path
 from openpyxl import Workbook, load_workbook
 import pandas as pd
 
-from followup_quotes.app import generate_followup_workbook
+from followup_quotes.app import generate_followup_workbook, resolve_template_path
 from followup_quotes.config import RunConfig
 from followup_quotes.io_excel import write_output
 
@@ -71,3 +71,9 @@ def test_generate_followup_workbook_creates_per_rep_tabs(tmp_path: Path):
     assert "Follow-Up" in wb.sheetnames
     assert "Eric Simpson" in wb.sheetnames
     assert wb["Eric Simpson"]["A2"].value == "Q2"
+
+
+def test_resolve_template_path_prefers_explicit(tmp_path: Path):
+    explicit = tmp_path / "x.xlsx"
+    explicit.write_bytes(b"dummy")
+    assert resolve_template_path(explicit) == explicit

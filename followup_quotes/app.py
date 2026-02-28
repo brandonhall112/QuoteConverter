@@ -8,11 +8,31 @@ from .io_excel import detect_columns, read_excel, write_output
 from .matching import run_matching
 
 INVALID_SHEET_CHARS = re.compile(r"[:\\/?*\[\]]")
+DEFAULT_TEMPLATE_CANDIDATES = [
+    "Follow-Up Summary Template.xlsx",
+    "FollowUp Summary Template.xlsx",
+    "FollowUp_Template.xlsx",
+    "Follow-Up Template.xlsx",
+    "Followup Template.xlsx",
+]
 
 
 def _sheet_name_for_rep(rep: str) -> str:
     clean = INVALID_SHEET_CHARS.sub("-", rep).strip() or "Unassigned"
     return clean[:31]
+
+
+def resolve_template_path(explicit_template: Path | None) -> Path | None:
+    if explicit_template:
+        return explicit_template
+
+    search_roots = [Path.cwd(), Path(__file__).resolve().parent, Path(__file__).resolve().parent / "templates"]
+    for root in search_roots:
+        for name in DEFAULT_TEMPLATE_CANDIDATES:
+            candidate = root / name
+            if candidate.exists():
+                return candidate
+    return None
 
 
 def generate_followup_workbook(cfg: RunConfig) -> Path:
@@ -46,7 +66,8 @@ def generate_followup_workbook(cfg: RunConfig) -> Path:
     if cfg.debug and result.debug is not None:
         sheets["_Debug"] = result.debug
 
-    write_output(cfg.out_path, sheets, cfg.template_path)
+    template_path = resolve_template_path(cfg.template_path)
+    write_output(cfg.out_path, sheets, template_path)
     return cfg.out_path
 
 

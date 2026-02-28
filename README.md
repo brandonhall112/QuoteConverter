@@ -15,7 +15,7 @@ The output workbook contains values in data tabs, and can preserve template form
 
 1. **Quote Summary (.xlsx)** for the date range
 2. **Order Log (.xlsx)** for the same date range
-3. (Optional) Follow-up Summary template workbook (.xlsx) if you want to preserve summary formulas/layout
+3. (Recommended) Keep your Follow-Up Summary template workbook in the project so it is auto-detected and used
 4. Run the tool and send the output workbook to your team
 
 ---
@@ -70,25 +70,15 @@ Optional:
 - `--reps "Name1" "Name2" ...`
 - `--reps-config reps.json`
 - `--column-map mapping.json`
-- `--template "Followup_Template.xlsx"` (optional; refreshes Follow-Up/per-rep tabs and preserves other formula tabs)
+- `--template "Followup_Template.xlsx"` (optional override; if omitted, app auto-detects common template filenames)
 - `--debug`
 
 ## Template output behavior
 
 When `--template` is provided:
-- the template workbook is copied to the output path
+- the template workbook is copied to the output path (auto-detected if not explicitly provided)
 - output sheets (`Follow-Up`, rep tabs, `_Meta`) are refreshed/created in-place
 - non-output sheets (for example a summary tab with formulas/charts) are preserved
-
-
-## Template output behavior
-
-When `--template` is provided:
-- the template workbook is copied to the output path
-- data sheets (`Option A (Rev Match)`, `Option B (No Rev Match)`, `Option C (Open Matched)`, `_Meta`) are refreshed in-place
-- non-output sheets (for example a summary tab with formulas/charts) are preserved
-
-This lets you keep your summary formulas/macros/layout while updating follow-up data from the latest run.
 
 ## Mapping override format
 
@@ -114,9 +104,8 @@ This lets you keep your summary formulas/macros/layout while updating follow-up 
 - Matching is **Option B only**: customer + grouped order totals + tolerance.
 - Rev matching is not used.
 - Quote numbers are not expected to equal order numbers; matching compares customer + order-level totals from the order log against quote totals.
-- UI includes optional template and icon selectors, plus a refreshed modernized layout.
-
-- UI includes optional template and icon selectors, plus a refreshed modernized layout.
+- UI automatically applies an app icon when `followup_quotes/app.ico` (or `followup_quotes/followup.ico`) exists.
+- UI can auto-detect the template path and still allows override if needed.
 
 ## CI build file (`.yml`)
 
