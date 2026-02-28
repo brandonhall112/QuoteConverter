@@ -7,7 +7,7 @@ import pandas as pd
 from .config import RunConfig
 from .io_excel import normalize_customer, parse_money
 
-OUTPUT_COLUMNS = ["Quote", "Customer", "Quote Amount", "Date Quoted", "Entry Person Name", "One by Follow-Up"]
+OUTPUT_COLUMNS = ["Quote", "Customer", "Quote Amount", "Date Quoted", "Entry Person Name", "Won by Follow Up?"]
 
 
 @dataclass
@@ -41,7 +41,7 @@ def _prep_quotes(quotes: pd.DataFrame, qmap: dict[str, str], cfg: RunConfig) -> 
     q["Date Quoted"] = q[qmap["date_quoted"]]
     q["Entry Person Name"] = q[qmap["entry_person_name"]]
     q["CustKey"] = q["Customer"].map(normalize_customer)
-    q["One by Follow-Up"] = False
+    q["Won by Follow Up?"] = False
 
     q = q[q["Quote Amount"].notna()]
     q = q[q["Quote Amount"] > cfg.floor]

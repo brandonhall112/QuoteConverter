@@ -4,7 +4,7 @@ This tool compares a **Quote Summary** Excel export against an **Order Log** Exc
 
 It outputs one Excel workbook with:
 - **Follow-Up**: quotes needing follow-up based on customer + amount closeness match against grouped sales-order totals
-  - includes `One by Follow-Up` column (boolean) so your summary checkbox/count logic keeps working
+  - includes `Won by Follow Up?` column (boolean) so your summary checkbox/count logic keeps working
 - **Per-rep tabs**: one sheet per `Entry Person Name` containing only that rep's follow-up lines
 - **_Meta**: run/config diagnostics
 
@@ -28,7 +28,7 @@ Create/use this folder in repo root:
 
 - `assets/app.ico` (primary app/exe icon)
 - `assets/followup.ico` (fallback icon)
-- `assets/Follow-Up Summary Template.xlsx` (preferred template)
+- `assets/Parts Follow Up Template.xlsx` (default/preferred template)
 
 The app auto-detects these assets by default (you can still override template path).
 
@@ -82,7 +82,7 @@ Optional:
 - `--reps "Name1" "Name2" ...`
 - `--reps-config reps.json`
 - `--column-map mapping.json`
-- `--template "Followup_Template.xlsx"` (optional override; if omitted, app auto-detects common template filenames)
+- `--template "Followup_Template.xlsx"` (optional override; if omitted, app auto-detects templates and prefers `assets/Parts Follow Up Template.xlsx`)
 - `--debug`
 
 ## Template output behavior

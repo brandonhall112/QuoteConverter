@@ -18,7 +18,7 @@ def test_write_output_preserves_template_formula_sheet_and_checkbox_column(tmp_p
     ws_followup.title = "Follow-Up"
     ws_followup["A1"] = "Quote"
     ws_followup["B1"] = "Customer"
-    ws_followup["C1"] = "One by Follow-Up"
+    ws_followup["C1"] = "Won by Follow Up?"
     ws_followup["C2"] = True
 
     ws_summary = wb.create_sheet("Summary")
@@ -31,8 +31,8 @@ def test_write_output_preserves_template_formula_sheet_and_checkbox_column(tmp_p
     sheets = {
         "Follow-Up": pd.DataFrame(
             [
-                {"Quote": "Q1", "Customer": "ACME", "One by Follow-Up": False},
-                {"Quote": "Q2", "Customer": "BETA", "One by Follow-Up": False},
+                {"Quote": "Q1", "Customer": "ACME", "Won by Follow Up?": False},
+                {"Quote": "Q2", "Customer": "BETA", "Won by Follow Up?": False},
             ]
         ),
         "_Meta": pd.DataFrame([{"Metric": "x", "Value": "y"}]),
@@ -99,7 +99,7 @@ def test_write_output_updates_existing_table_ref(tmp_path: Path):
     wb = Workbook()
     ws = wb.active
     ws.title = "Follow-Up"
-    ws.append(["Quote", "Customer", "Quote Amount", "Date Quoted", "Entry Person Name", "One by Follow-Up"])
+    ws.append(["Quote", "Customer", "Quote Amount", "Date Quoted", "Entry Person Name", "Won by Follow Up?"])
     ws.append(["Q-old", "ACME", 10, "2024-01-01", "Reid", False])
     ws.append(["Q-old2", "ACME", 11, "2024-01-01", "Reid", False])
 
@@ -109,9 +109,9 @@ def test_write_output_updates_existing_table_ref(tmp_path: Path):
     wb.save(template)
 
     df = pd.DataFrame([
-        {"Quote": "Q1", "Customer": "ACME", "Quote Amount": 100, "Date Quoted": "2024-02-01", "Entry Person Name": "Reid", "One by Follow-Up": False},
-        {"Quote": "Q2", "Customer": "BETA", "Quote Amount": 200, "Date Quoted": "2024-02-02", "Entry Person Name": "Eric", "One by Follow-Up": True},
-        {"Quote": "Q3", "Customer": "GAMMA", "Quote Amount": 300, "Date Quoted": "2024-02-03", "Entry Person Name": "Eric", "One by Follow-Up": False},
+        {"Quote": "Q1", "Customer": "ACME", "Quote Amount": 100, "Date Quoted": "2024-02-01", "Entry Person Name": "Reid", "Won by Follow Up?": False},
+        {"Quote": "Q2", "Customer": "BETA", "Quote Amount": 200, "Date Quoted": "2024-02-02", "Entry Person Name": "Eric", "Won by Follow Up?": True},
+        {"Quote": "Q3", "Customer": "GAMMA", "Quote Amount": 300, "Date Quoted": "2024-02-03", "Entry Person Name": "Eric", "Won by Follow Up?": False},
     ])
 
     write_output(out, {"Follow-Up": df}, template)

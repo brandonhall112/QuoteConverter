@@ -9,6 +9,7 @@ from .matching import run_matching
 
 INVALID_SHEET_CHARS = re.compile(r"[:\\/?*\[\]]")
 DEFAULT_TEMPLATE_CANDIDATES = [
+    "Parts Follow Up Template.xlsx",
     "Follow-Up Summary Template.xlsx",
     "FollowUp Summary Template.xlsx",
     "FollowUp_Template.xlsx",
