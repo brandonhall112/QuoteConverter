@@ -2,13 +2,6 @@ name: Build and Test
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-      - master
-      - develop
-      - 'feature/**'
-  pull_request:
 
 jobs:
   test:
@@ -61,7 +54,20 @@ jobs:
       - name: Build desktop UI executable
         shell: bash
         run: |
-          pyinstaller --noconfirm --clean --windowed --onefile --name FollowUpQuoteFinder followup_quotes/ui.py
+          ICON_PATH=""
+          for CAND in assets/app.ico assets/followup.ico followup_quotes/assets/app.ico followup_quotes/assets/followup.ico followup_quotes/app.ico followup_quotes/followup.ico app.ico followup.ico; do
+            if [ -f "$CAND" ]; then
+              ICON_PATH="$CAND"
+              break
+            fi
+          done
+
+          ICON_ARG=""
+          if [ -n "$ICON_PATH" ]; then
+            ICON_ARG="--icon $ICON_PATH"
+          fi
+
+          pyinstaller --noconfirm --clean --windowed --onefile --name FollowUpQuoteFinder $ICON_ARG followup_quotes/ui.py
 
       - name: Upload executable artifact
         uses: actions/upload-artifact@v4
