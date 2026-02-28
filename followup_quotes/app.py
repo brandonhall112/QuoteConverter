@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import re
+import sys
 
 from .config import ColumnMap, DEFAULT_ALLOWED_REPS, ORDER_SYNONYMS, QUOTE_SYNONYMS, RunConfig
 from .io_excel import detect_columns, read_excel, write_output
@@ -24,18 +25,33 @@ def _sheet_name_for_rep(rep: str) -> str:
     return clean[:31]
 
 
+
+
+def _runtime_search_roots() -> list[Path]:
+    module_dir = Path(__file__).resolve().parent
+    exe_dir = Path(sys.executable).resolve().parent
+    roots = [
+        Path.cwd() / ASSETS_DIR_NAME,
+        Path.cwd(),
+        exe_dir / ASSETS_DIR_NAME,
+        exe_dir,
+        module_dir / ASSETS_DIR_NAME,
+        module_dir,
+        module_dir / "templates",
+    ]
+    seen: set[Path] = set()
+    ordered: list[Path] = []
+    for root in roots:
+        if root not in seen:
+            seen.add(root)
+            ordered.append(root)
+    return ordered
+
 def resolve_template_path(explicit_template: Path | None) -> Path | None:
     if explicit_template:
         return explicit_template
 
-    search_roots = [
-        Path.cwd() / ASSETS_DIR_NAME,
-        Path.cwd(),
-        Path(__file__).resolve().parent / ASSETS_DIR_NAME,
-        Path(__file__).resolve().parent,
-        Path(__file__).resolve().parent / "templates",
-    ]
-    for root in search_roots:
+    for root in _runtime_search_roots():
         for name in DEFAULT_TEMPLATE_CANDIDATES:
             candidate = root / name
             if candidate.exists():

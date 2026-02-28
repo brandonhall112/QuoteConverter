@@ -139,3 +139,13 @@ def test_write_output_new_sheet_starts_at_column_a(tmp_path: Path):
     ws = wb["Eric Simpson"]
     assert ws["A1"].value == "Quote"
     assert ws["A2"].value == "Q2"
+
+
+def test_resolve_template_path_prefers_parts_followup_template_in_assets(tmp_path: Path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    assets = tmp_path / "assets"
+    assets.mkdir()
+    preferred = assets / "Parts Follow Up Template.xlsx"
+    preferred.write_bytes(b"dummy")
+
+    assert resolve_template_path(None) == preferred

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+import ctypes
+import sys
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from pathlib import Path
@@ -34,13 +36,27 @@ class FollowupUI(tk.Tk):
         resolved = resolve_template_path(None)
         return str(resolved) if resolved else "(auto-detect: not found)"
 
+    def _set_windows_app_id(self) -> None:
+        if sys.platform != "win32":
+            return
+        try:
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("QuoteConverter.FollowUpQuoteFinder")
+        except Exception:
+            return
+
     def _set_app_icon(self) -> None:
+        self._set_windows_app_id()
         root = Path(__file__).resolve().parent
+        exe_dir = Path(sys.executable).resolve().parent
         candidates = [
+            exe_dir / "assets" / "app.ico",
+            exe_dir / "assets" / "followup.ico",
             Path.cwd() / "assets" / "app.ico",
             Path.cwd() / "assets" / "followup.ico",
             root / "assets" / "app.ico",
             root / "assets" / "followup.ico",
+            exe_dir / "app.ico",
+            exe_dir / "followup.ico",
             root / "app.ico",
             root / "followup.ico",
             Path.cwd() / "app.ico",
@@ -49,7 +65,7 @@ class FollowupUI(tk.Tk):
         for icon in candidates:
             if icon.exists():
                 try:
-                    self.iconbitmap(str(icon))
+                    self.iconbitmap(default=str(icon))
                     return
                 except Exception:
                     continue

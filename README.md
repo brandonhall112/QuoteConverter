@@ -82,7 +82,7 @@ Optional:
 - `--reps "Name1" "Name2" ...`
 - `--reps-config reps.json`
 - `--column-map mapping.json`
-- `--template "Followup_Template.xlsx"` (optional override; if omitted, app auto-detects templates and prefers `assets/Parts Follow Up Template.xlsx`)
+- `--template "Followup_Template.xlsx"` (optional override; if omitted, app auto-detects templates and prefers `assets/Parts Follow Up Template.xlsx` (checks assets in current folder and executable folder first))
 - `--debug`
 
 ## Template output behavior
@@ -117,7 +117,7 @@ When `--template` is provided:
 - Matching is **Option B only**: customer + grouped order totals + tolerance.
 - Rev matching is not used.
 - Quote numbers are not expected to equal order numbers; matching compares customer + order-level totals from the order log against quote totals.
-- UI automatically applies an app icon when `assets/app.ico` (or `assets/followup.ico`) exists (with legacy fallbacks).
+- UI automatically applies an app icon when `assets/app.ico` (or `assets/followup.ico`) exists, including packaged executable locations.
 - UI can auto-detect the template path and still allows override if needed.
 
 ## CI build file (`.yml`)
